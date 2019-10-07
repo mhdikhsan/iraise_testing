@@ -1,0 +1,96 @@
+<?php
+
+class BeasiswaController extends Controller
+{
+	public function actionIndex()
+	{
+		$judul="Bidik Misi";
+		$id_pd=Yii::app()->session->get('username');
+		$model=Mahasiswa::model()->findByPk($id_pd);
+		$jk=$model->jk;
+		if($jk=="L")
+		{
+			$jk="Laki-Laki";
+		}else if($jk=="P")
+		{
+			$jk="Perempuan";
+		}else{
+			$jk="?";
+		}
+		//jurusan
+		$modelSms=Sms::model()->findByPk($model->regpd_id_sms);
+		$jurusan=$modelSms->nm_lemb;
+		//fakutas
+		$modelSms=Sms::model()->findByPk($modelSms->id_induk_sms);
+		$fakultas=$modelSms->nm_lemb;
+		//Model Beasiswa
+		$modelBBM=BidikmisiRincian::model()->findByPk($id_pd);
+		if(!isset($modelBBM)){
+			$modelBBM=new BidikmisiRincian;
+		}
+		//POST
+		if(isset($_POST['BidikmisiRincian']))
+		{
+			$modelBBM->attributes=$_POST['BidikmisiRincian'];
+			$modelBBM->nim=$id_pd;
+			if($modelBBM->save()):
+				$model->beasiswa_bidikmisi="1";
+				$model->save();
+				$this->refresh();
+			endif;
+		}
+		//SOA
+		// $client=new SoapClient('https://10.14.200.159/nusoap/index.php?wsdl');
+		// try{
+			// echo '<br>';
+			// $hasil=$client->mahasiswa("11581100805");
+			// echo '<br><br>';
+			// $hasil1=objectToArray($hasil);
+		// }catch(SoapFault $e){
+			// echo $e->getMessage();
+		// }
+		//RENDER
+		$this->render('bidikmisi',array(
+			'judul'=>$judul,
+			'id_pd'=>$id_pd,
+			'model'=>$model,
+			'jurusan'=>$jurusan,
+			'fakultas'=>$fakultas,
+			'jk'=>$jk,
+			'modelBBM'=>$modelBBM,
+		));
+	}
+	
+	function objectToArray($d) 
+	{
+		 if (is_object($d)) {
+		 // Gets the properties of the given object
+		 // with get_object_vars function
+		 $d = get_object_vars($d);
+		 }
+		 
+		 if (is_array($d)) {
+		 /*
+		 * Return array converted to object
+		 * Using __FUNCTION__ (Magic constant)
+		 * for recursive call
+		 */
+		 return array_map(__FUNCTION__, $d);
+		 }
+		 else {
+		 // Return array
+		 return $d;
+		 }
+	 }
+	public function actionGagal()
+	{
+		$judul="Gagal";
+		$pesan="Anda tidak bisa mengajukan beasiswa bidikmisi :<br><br>";
+		$pesan.="1. Umur anda melebihi 21 tahun.<br>";
+		$pesan.="2. IP anda dibawah 3 selama 2 semester berturut-turut.<br>";
+		$this->render('gagal',array(
+			'pesan'=>$pesan,
+			'judul'=>$judul,
+		));
+	}
+}
