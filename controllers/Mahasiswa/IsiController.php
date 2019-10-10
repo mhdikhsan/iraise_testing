@@ -11,6 +11,9 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\Sms;
 use app\models\KuliahMhs;
+use app\models\Semester;
+use app\models\Fakultas;
+use app\models\Matkul;
 class IsiController extends Controller
 {
 	/**
@@ -133,13 +136,12 @@ class IsiController extends Controller
 			} //(14)
 		}//(15)
 
+        return $this->render('krs',[ 'model'=>$model,
+            'modelSms'=>$modelSms,
+            'modelSearch'=>$modelSearch,
+            'modelNilai'=>$modelNilai,]);
 
-		$this->render('krs',array(
-			'model'=>$model,
-			'modelSms'=>$modelSms,
-			'modelSearch'=>$modelSearch,
-			'modelNilai'=>$modelNilai,
-		));
+
 		//(16)
 	}
 	
@@ -147,15 +149,15 @@ class IsiController extends Controller
 	{
 		
 		//Koneksi Database DAO
-		$c=Yii::app()->db;
+		$c=Yii::$app->db;
 		
 		//SMS = Fakultas dan Jurusan
-		$sess_sms=Yii::app()->session->get('sms');
-		$sess_id_pd=Yii::app()->session->get('username');
-		$sess_smt=Yii::app()->session->get('semester');
-		$sess_status=Yii::app()->session->get('status');
-		$sess_angkatan=Yii::app()->session->get('angkatan');
-		$modelSmtAktif=Semester::model()->find('a_periode_aktif=:a_periode_aktif',array(':a_periode_aktif'=>'1'));
+		$sess_sms=Yii::$app->session->get('sms');
+		$sess_id_pd=Yii::$app->session->get('username');
+		$sess_smt=Yii::$app->session->get('semester');
+		$sess_status=Yii::$app->session->get('status');
+		$sess_angkatan=Yii::$app->session->get('angkatan');
+		$modelSmtAktif=Semester::find('a_periode_aktif=:a_periode_aktif',array(':a_periode_aktif'=>'1'));
 		
 		
 		//cek email
@@ -163,12 +165,12 @@ class IsiController extends Controller
 		$mahasiswa = $c->createCommand($mahasiswa)->queryRow();
 		//(1)
 		if($mahasiswa['email']== ""){ //(2)
-			$this->redirect(Yii::app()->request->baseUrl.'/mahasiswa/Mahasiswa/update/id/'.$sess_id_pd);//(3)
+			$this->redirect(Yii::$app->request->baseUrl.'/mahasiswa/Mahasiswa/update/id/'.$sess_id_pd);//(3)
 		}//(4)
 		
 		//cek angkatan & nisn
 		if(($sess_angkatan==2015) && ($mahasiswa['nisn']=="")){ //(5)
-			$this->redirect(Yii::app()->request->baseUrl.'/mahasiswa/Mahasiswa/update/id/'.$sess_id_pd);//(6)
+			$this->redirect(Yii::$app->request->baseUrl.'/mahasiswa/Mahasiswa/update/id/'.$sess_id_pd);//(6)
 		} //(7)
 		
 		//cek email
@@ -176,20 +178,20 @@ class IsiController extends Controller
 		{
 			//continue; //(9)
 		}else{ //(10)
-				$this->redirect(Yii::app()->request->baseUrl.'/mahasiswa/Mahasiswa/update/id/'.$sess_id_pd);
+				$this->redirect(Yii::$app->request->baseUrl.'/mahasiswa/Mahasiswa/update/id/'.$sess_id_pd);
 		}//(11)
 		
 		//id Fakultas
 		$stgFak="select id_induk_sms from sms where id_sms='$sess_sms'";
 		$stgFak = $c->createCommand($stgFak)->queryRow();
-		$stgFak=Fakultas::model()->find('id_sms=:id_sms',array(':id_sms'=>$stgFak['id_induk_sms']));
+		$stgFak=Fakultas::find('id_sms=:id_sms',array(':id_sms'=>$stgFak['id_induk_sms']));
 		//(12)
 		//Cek Tgl Jadwal isi krs
 		if((date('Y-m-d')>=$stgFak->tgl_mulai_krs)&&(date('Y-m-d')<=$stgFak->tgl_selesai_krs))//(13)
 		{
 			//(14)
 		}else{ //(15)
-			$this->redirect(Yii::app()->request->baseUrl.'/');
+			$this->redirect(Yii::$app->request->baseUrl.'/');
 		}//(16)
 		//Status Aktif Kuliah
 		if($sess_status!="A"){ //(17)
@@ -263,9 +265,9 @@ class IsiController extends Controller
 						$modelNilai=new Nilai;
 						$modelNilai->id_kls=$kelas;
 						//Kelas Kuliah
-						$modelKelas=KelasKuliah::model()->findByPk($modelNilai->id_kls,array('select'=>'id_mk,kuota_pditt'));
+						$modelKelas=KelasKuliah::findOne($modelNilai->id_kls,array('select'=>'id_mk,kuota_pditt'));
 						//Matkul
-						$modelMatkul=Matkul::model()->findByPk($modelKelas->id_mk,array('select'=>'sks_mk'));
+						$modelMatkul=Matkul::findOne($modelKelas->id_mk,array('select'=>'sks_mk'));
 						//(30)
 						//cek sks maks
 						if(($sks_ambil+=$modelMatkul->sks_mk)>$sks_max)//(31)
@@ -277,8 +279,8 @@ class IsiController extends Controller
 							$modelNilai->semester=$sess_smt;
 							$modelNilai->create_user=$sess_id_pd;
 							//cek
-							$modelNilaiCek=Nilai::model()->find('id_kls=:id_kls AND id_reg_pd=:id_reg_pd',array(':id_kls'=>$kelas,':id_reg_pd'=>$sess_id_pd));
-							$modelKelasCek=Nilai::model()->findAll('id_kls=:id_kls',array(':id_kls'=>$kelas));
+							$modelNilaiCek=Nilai::find('id_kls=:id_kls AND id_reg_pd=:id_reg_pd',array(':id_kls'=>$kelas,':id_reg_pd'=>$sess_id_pd));
+							$modelKelasCek=Nilai::findAll('id_kls=:id_kls',array(':id_kls'=>$kelas));
 							//(34)
 							if((!isset($modelNilaiCek))&&(count($modelKelasCek)<$modelKelas->kuota_pditt))
 							{//(35)
