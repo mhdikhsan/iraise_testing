@@ -2,6 +2,7 @@
 
 namespace tests\unit\controllers;
  use app\controllers\Mahasiswa\IsiController;
+ use app\models\KelasKuliah;
  use Yii;
 
 
@@ -9,14 +10,50 @@ namespace tests\unit\controllers;
 {
 
     private $controller;
-    public function testKelasKuliah()
+    public function testLoopingTotalSks()
     {
 
         $this->controller = new \app\controllers\Mahasiswa\IsiController('IsiController',Yii::$app);
 
-        $test = $this->controller->actionIndex();
+        $test = $this->controller->actionKrs(11);
 
-        expect($test)->null();
+
+
+    }
+
+    public function testSksKrs(){
+        $this->controller = new \app\controllers\Mahasiswa\IsiController('IsiController',Yii::$app);
+
+        $test = $this->controller->actionKrs(11);
+
+    }
+
+    public function testIdKelasKrs(){
+        $this->controller = new \app\controllers\Mahasiswa\IsiController('IsiController',Yii::$app);
+
+
+        $test = $this->controller->actionKrs(11);
+
+    }
+
+    public function testSksMelebihiSksMax(){
+        $this->controller = new \app\controllers\Mahasiswa\IsiController('IsiController',Yii::$app);
+
+        $test = $this->controller->actionKrs(11);
+
+    }
+
+    public function testBerhasilInputKRS(){
+        $this->controller = new \app\controllers\Mahasiswa\IsiController('IsiController',Yii::$app);
+
+        $test = $this->controller->actionKrs(11);
+
+    }
+
+    public function testModelKelasMelebihiKuota(){
+        $this->controller = new \app\controllers\Mahasiswa\IsiController('IsiController',Yii::$app);
+
+        $test = $this->controller->actionKrs(11);
 
     }
 }
